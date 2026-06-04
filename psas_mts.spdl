@@ -1,0 +1,119 @@
+/* PSAS-MTS Protocol SPDL Specification */
+
+usertype String;
+usertype Timestamp;
+
+hashfunction h;
+hashfunction HMAC;
+hashfunction ecmul;
+hashfunction xor;
+hashfunction xcoord;
+hashfunction ycoord;
+
+const G: Ticket;
+secret IDv, IDhap, IDcs: String;
+secret PIN: String;
+secret Prv: String;
+secret PUv: Ticket;
+secret PIDv: String;
+secret PUcs: Ticket;
+secret Prcs: String;
+
+protocol psas-mts(V, HAP, CS) {
+    role V {
+        // Session ephemerals
+        fresh a1: String;
+        var b1, c1: String;
+        var Z1, Z: Ticket;
+        
+        macro Yv = ecmul(a1, G);
+        macro Xv = ecmul(Yv, PUcs);
+        macro ssk2v = h(ecmul(Z1, PUv));
+        macro Wv = ecmul(Yv, Z);
+        macro SKv = h(IDcs, PIDv, Wv, T3);
+        
+        fresh T1: Timestamp;
+        var T2, T3, T4: Timestamp;
+        
+        // Messages
+        macro M1v = xor(PIDv, h(xcoord(Xv)));
+        macro M2v = h(PIDv, ycoord(Xv), T1);
+        macro M3v = xor(M2v, IDhap);
+        macro M4v = h(PIDv, IDhap, IDcs, Xv, T1);
+        
+        send_1(V, HAP, (Yv, T1, M1v, M3v, M4v));
+        recv_4(HAP, V, (Z, Z1, h(PIDv, xcoord(Wv), T3), h(IDhap, IDcs, Z1, T3), h(SKv, Xv), T3, T4, HMAC(ssk2v, (Z, Z1, h(PIDv, xcoord(Wv), T3), h(IDhap, IDcs, Z1, T3), h(SKv, Xv), T3), IDhap, T4)));
+        
+        claim_v1(V, Secret, IDcs);
+        claim_v2(V, Secret, IDhap);
+        claim_v3(V, SKR, SKv);
+        claim_v4(V, Secret, PUcs);
+        claim_v5(V, Secret, Prv);
+        claim_v6(V, Niagree);
+        claim_v7(V, Nisynch);
+        claim_v8(V, Alive);
+        claim_v9(V, Weakagree);
+    }
+    
+    role HAP {
+        fresh b1: String;
+        var a1, c1: String;
+        var Y, Z: Ticket;
+        
+        fresh T2, T4: Timestamp;
+        var T1, T3: Timestamp;
+        
+        var M1, M3, M4, M5, VerSK: Ticket;
+        
+        macro Z1h = ecmul(b1, G);
+        macro sskh = h(ecmul(Z1h, PUcs));
+        macro ssk2h = h(ecmul(Z1h, PUv));
+        
+        recv_1(V, HAP, (Y, T1, M1, M3, M4));
+        send_2(HAP, CS, (Z1h, Y, T1, M1, M3, M4, T2, HMAC(sskh, (Y, T1, M1, M3, M4), IDhap, T2)));
+        recv_3(CS, HAP, (Z, M5, h(IDhap, IDcs, Z1h, T3), VerSK, T3, HMAC(sskh, (Z, M5, h(IDhap, IDcs, Z1h, T3), VerSK, T3), T3)));
+        send_4(HAP, V, (Z, Z1h, M5, h(IDhap, IDcs, Z1h, T3), VerSK, T3, T4, HMAC(ssk2h, (Z, Z1h, M5, h(IDhap, IDcs, Z1h, T3), VerSK, T3), IDhap, T4)));
+        
+        claim_h1(HAP, Secret, IDcs);
+        claim_h2(HAP, Secret, IDhap);
+        claim_h3(HAP, SKR, h(IDcs, xor(M1, h(xcoord(ecmul(b1, PUcs)))), ecmul(b1, Y), T3)); // reconstructed SK
+        claim_h4(HAP, Secret, PUcs);
+        claim_h5(HAP, Secret, b1);
+        claim_h6(HAP, Niagree);
+        claim_h7(HAP, Nisynch);
+        claim_h8(HAP, Alive);
+        claim_h9(HAP, Weakagree);
+    }
+    
+    role CS {
+        fresh c1: String;
+        var b1: String;
+        var Y, Z1: Ticket;
+        
+        var T1, T2: Timestamp;
+        fresh T3: Timestamp;
+        
+        var M1, M3: Ticket;
+        
+        macro Xcs = ecmul(Y, PUcs);
+        macro PIDvrec = xor(M1, h(xcoord(Xcs)));
+        macro M2cs = h(PIDvrec, ycoord(Xcs), T1);
+        macro IDhaprec = xor(M2cs, M3);
+        macro sskcs = h(ecmul(Z1, PUcs));
+        macro Zcs = ecmul(c1, G);
+        macro Wcs = ecmul(Y, Zcs);
+        macro SKcs = h(IDcs, PIDvrec, Wcs, T3);
+        
+        recv_2(HAP, CS, (Z1, Y, T1, M1, M3, h(PIDvrec, IDhaprec, IDcs, Xcs, T1), T2, HMAC(sskcs, (Y, T1, M1, M3, h(PIDvrec, IDhaprec, IDcs, Xcs, T1)), IDhap, T2)));
+        send_3(CS, HAP, (Zcs, h(PIDvrec, xcoord(Wcs), T3), h(IDhap, IDcs, Z1, T3), h(SKcs, Xcs), T3, HMAC(sskcs, (Zcs, h(PIDvrec, xcoord(Wcs), T3), h(IDhap, IDcs, Z1, T3), h(SKcs, Xcs), T3), T3)));
+        
+        claim_c1(CS, Secret, IDcs);
+        claim_c2(CS, Secret, IDhap);
+        claim_c3(CS, SKR, SKcs);
+        claim_c4(CS, Secret, Prcs);
+        claim_c5(CS, Niagree);
+        claim_c6(CS, Nisynch);
+        claim_c7(CS, Alive);
+        claim_c8(CS, Weakagree);
+    }
+}

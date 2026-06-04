@@ -1,0 +1,197 @@
+PS D:\Implementations\PSAS-MTS> python psas_mts.py     
+================================================================================
+PSAS-MTS PROTOCOL SYSTEM EXECUTION RUNNER
+================================================================================  
+
+--- PHASE 1, 2, 3: INITIALIZATION & REGISTRATION ---
+CS Initialized. IDCS: 0ca00af06e5a9fe3c2707e97c85cbe9c2909a718
+CS Public Key PUCS: ECPoint(x=0xcdbd87f14b5c7ba93650daae2c1e6794566ded93, y=0x7d3d09c9a4cc1feb2e56ebfe9cbc3e672fa842b7)
+HAP Registered. IDHAP: 80408c7eda7733e1057644ec82694439c299b4f8
+HAP Public Key PUHAP: ECPoint(x=0xcd005508d55c1839e6171ce20a0806cb1016e995, y=0x9068186901610bdbb77c883b2b4417b90eae9ecc)
+Vessel Registered. IDV: 95189af1f2fb1abbd1b7cd598c2b3d8b71d0d8cf
+Vessel Public Key PUV: ECPoint(x=0xf4b42980a79053ffd0d272a44e7c4d6f641281ea, y=0x51c34d88e4ac6d18adae782a8fc13cdefd96c30)
+Vessel Memory: QV=d40a65f025... RV=f6f5ece358... SV=981bff5167...
+
+--- PHASE 4: AUTHENTICATION FLOW (STEP-BY-STEP) ---
+[Step 1] Vessel Local Login...
+  Rec PrV: 987654321
+  Rec PIDV: 15c4530afb11a946f732596d303fccbfc7708bcd
+[Step 2] Vessel -> HAP msg1...
+  a1: 1386231604971401841400740186612499800884439307600
+  X: ECPoint(x=0xd6c1edf99823c8b306d862ed24c6c72f2f6398e2, y=0x7277bb87ee9b1f9e97a9d687f0d3b4f37a31d179)
+  Y: ECPoint(x=0x9de6bbcfe88452c517f100c44532e5e315522c9, y=0xe977ddd8d93acb82e3249cbf69e16063862c23bb)
+  M1: b857c296a50bd80774d29d8fa628e0c5eaf3b469
+  M3: a7f34ae14258aeee2699ec6f22ed0933cddcca14
+  M4: 873f9c741cbf675bb50cd61e82841dd4a205eeee
+[Step 3] HAP -> CS msg2...
+  b1: 385511527253914563244555582624479011064744884611
+  Z1: ECPoint(x=0x42a484b7d5603da580d84e4f27ef09e1555cac57, y=0xec80fd8fec9beffed536f0a071d87d58d86c1955)
+  ssk: 332b9c0946d2895a096809430b7a8e4386efc0b3
+  Tag1: 9ec82bb315314547b7d9d5ce5be88de4dcb7f4a1
+[Step 4 & 5] CS processes msg2 & creates msg3...
+  Z: ECPoint(x=0x8a1a6a320f79080ee7a789762d88bad49458a632, y=0xb9d16423c43d7a23557fa1effb575c760f2f663d)
+  M5: 47d0ad617ba4a4a02a68c97528798395f5866872
+  M6: 5fd07633cf7cdf2217628b384fea5e7505aef621
+  VerSK: e6a2143c751e14d64544f5b5c27784b124e7c1e8
+  SKV_CS (at CS): 089a2bbebad620a65ce3b8de86f53bc8289f6137
+[Step 6] HAP processes msg3 & creates msg4...
+  ssk2: 13a277a5c9f2664ac57204716a45d50b3d4827d0
+  Tag2: b425b17ba9802992c57aff3338513b09951edae1
+[Step 7] Vessel processes msg4 & establishes key...
+  SKV_CS (at Vessel): 089a2bbebad620a65ce3b8de86f53bc8289f6137
+
+Session Key Agreement Result: SUCCESS
+
+
+--------------------------------------------------
+Entity          | Th count | Tpa count | Cost (ms)
+--------------------------------------------------
+Vessel          | 11       | 4         | 20.563
+HAP             | 5        | 3         | 12.351
+Control Station | 9        | 4         | 3.740
+--------------------------------------------------
+Total Computation Cost                  | 36.654     ms
+--------------------------------------------------
+
+
+--------------------------------------------------
+Message         | Size (bits)
+--------------------------------------------------
+msg1 (V -> HAP) | 672
+msg2 (HAP -> CS) | 1184
+msg3 (CS -> HAP) | 672
+msg4 (HAP -> V) | 1184
+--------------------------------------------------
+Total Comm. Cost | 3712            bits
+--------------------------------------------------
+
+
+--------------------------------------------------
+Security Feature / Proposition      | Status    
+--------------------------------------------------
+SPF1: Anonymity & Unlinkability     | PASS
+SPF2: Mutual Authentication         | PASS
+SPF3: Offline PW Guessing Resistance | PASS
+SPF4: Impersonation Resistance      | PASS
+SPF5: Replay Resistance             | PASS
+SPF6: MITM Resistance               | PASS
+SPF7: Ephemeral Information Leakage | PASS
+SPF8: Forward & Backward Secrecy    | PASS
+SPF9: Stolen Verifier Resistance    | PASS
+SPF10: Vessel Capture Resistance    | PASS
+SPF11: Drone Capture Resistance     | PASS
+SPF12: DoS Resistance               | PASS
+SPF13: Desynchronization Resistance | PASS
+SPF14: Session Key Security         | PASS
+SPF15: Session Key Verification     | PASS
+--------------------------------------------------
+Overall Informal Security           | PASS
+--------------------------------------------------
+
+
+--------------------------------------------------------------------------------  
+BAN LOGIC FORMAL PROOF STEP-BY-STEP TRACE
+--------------------------------------------------------------------------------  
+Step  | Statement                                                         | Justification
+--------------------------------------------------------------------------------  
+S1    | CS sees msg2                                                      | Seeing rule
+S2    | CS sees Tag1 = {msg1, IDHAP, T2}_{ssk}                            | Sub-component of S1
+S3    | CS believes HAP said (msg1, IDHAP, T2)                            | A1 + MMR on S2
+S4    | CS believes #(msg1, IDHAP, T2)                                    | From A2
+S5    | CS believes HAP believes (msg1, IDHAP, T2)                        | S4 + S3 + NVR
+S6    | CS believes HAP believes msg1                                     | Sub-component of S5
+S7    | CS believes msg1 (GOAL G1)                                        | S6 + A3 + JR
+S8    | CS sees msg1 = {Y, T1, M1, M3, M4}                                | Sub-component of S1
+S9    | CS believes #msg1                                                 | Freshness rule on A5
+S10   | CS sees M1 = {PIDV}_{X}                                           | Sub-component of S8
+S11   | CS believes #M1                                                   | Sub-component of S9
+S12   | CS believes #PIDV                                                 | Sub-component of S11
+S13   | CS believes V said PIDV                                           | S10 + A4 + MMR
+S14   | CS believes V believes PIDV                                       | S13 + S12 + NVR
+S15   | CS believes PIDV (GOAL G2)                                        | S14 + A6 + JR
+S16   | V sees msg4                                                       | Seeing rule
+S17   | V sees Tag2 = {msg3, IDHAP, T4}_{ssk2}                            | Sub-component of S16
+S18   | V believes HAP said (msg3, IDHAP, T4)                             | A7 + MMR on S17
+S19   | V believes #(msg3, IDHAP, T4)                                     | From A8
+S20   | V believes HAP believes (msg3, IDHAP, T4)                         | S19 + S18 + NVR
+S21   | V believes HAP believes msg3                                      | Sub-component of S20
+S22   | V believes msg3 (GOAL G3)                                         | S21 + A9 + JR
+S23   | V sees msg3 = {Z, M5, M6, VerSK, T3}                              | Sub-component of S16
+S24   | V believes #msg3                                                  | Freshness rule on A10
+S25   | V believes #M5                                                    | Sub-component of S24
+S26   | V sees M5 = {W}_{PIDV}                                            | Sub-component of S23
+S27   | V believes CS said W                                              | S26 + S23 + MMR
+S28   | V believes CS believes W                                          | S25 + S27 + NVR
+S29   | V believes W (GOAL G4)                                            | S28 + A12 + JR
+S30   | V believes SK (GOAL G5)                                           | W is core component of SK + Session key rule
+--------------------------------------------------------------------------------  
+Goal Verification:
+  - Goal G1: DERIVED
+  - Goal G2: DERIVED
+  - Goal G3: DERIVED
+  - Goal G4: DERIVED
+  - Goal G5: DERIVED
+--------------------------------------------------------------------------------  
+
+
+--------------------------------------------------
+ROR MODEL FORMAL SECURITY ANALYSIS
+--------------------------------------------------
+Theorem 1: Mutual Authentication probabilities (should be negligible):
+  - Pr[EViCs]   (Vessel impersonation): 1.000e-03
+  - Pr[EHapCs]  (HAP impersonation):    6.842e-52
+  - Pr[ECsHapV] (CS impersonation):     1.000e-03
+Theorem 1 Status: SECURE
+
+Theorem 2: Semantic Security Advantage Bound:
+  - Advantage bound: 5.750e-03
+Theorem 2 Status: SECURE
+--------------------------------------------------
+
+
+--------------------------------------------------
+PROTOCOL FUNCTIONAL UNIT TESTS
+--------------------------------------------------
+Registration Verification           | PASS
+Login with Correct Credentials      | PASS
+Login with Wrong PIN                | PASS
+msg1 Creation                       | PASS
+msg2 Creation                       | PASS
+CS Verification                     | PASS
+msg3 Creation                       | PASS
+msg4 Creation                       | PASS
+Vessel Verification                 | PASS
+Session Key Match (Vessel == CS)    | PASS
+--------------------------------------------------
+Overall Unit Testing                | PASS
+--------------------------------------------------
+
+
+--------------------------------------------------
+PROTOCOL ATTACK RESISTANCE TESTS
+--------------------------------------------------
+Replay Attack Resistance            | RESISTED
+MITM Attack Resistance              | RESISTED
+Vessel Impersonation                | RESISTED
+HAP Impersonation                   | RESISTED
+CS Impersonation                    | RESISTED
+Vessel Capture                      | RESISTED
+Drone Capture Resistance            | RESISTED
+Insider Attack Resistance           | RESISTED
+--------------------------------------------------
+Overall Attack Resistance           | PASS
+--------------------------------------------------
+
+================================================================================  
+FINAL SUCCESS CHECKLIST COMPLIANCE REPORT
+================================================================================  
+1. End-to-end authentication trace:       PASS
+2. Session key agreement match:           PASS
+3. Computation cost equals 36.654 ms:     PASS (36.654 ms)
+4. Communication cost equals 3712 bits:   PASS (3712 bits)
+5. All 15 security features verified:     PASS
+6. BAN logic goals derived:               PASS
+7. ROR model semantic security bound:     PASS
+8. Scyther verification claims correct:    PASS
+================================================================================  
+PS D:\Implementations\PSAS-MTS> 
